@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace SourceCode.Scripts
+namespace PixelArtPipeline
 {
     [Serializable]
     public class AnimationCapture
