@@ -74,7 +74,6 @@ namespace SourceCode.Scripts
                 }
             }
             var framesCount = endFrame - startFrame + 1;
-            Debug.Log(framesCount);
             var atlasSize = CalculateAtlasSize(cellSize, framesCount, out var columns);
             var atlasPos = new Vector2Int(0, atlasSize.y - cellSize.y);
 
