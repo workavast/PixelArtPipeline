@@ -2,7 +2,7 @@
 
 Based on [PixelArtPipeline](https://github.com/Broxxar/PixelArtPipeline) of [Broxxar](https://github.com/Broxxar)
 
-In editor tool to render 3D objects as sprite sheets or single sprite with normal map — based on the character art pipeline of the [Dead Cells](https://dead-cells.com/)
+In editor tool to render 3D object as sprite sheet or single sprite with normal map — based on the character art pipeline of the [Dead Cells](https://dead-cells.com/)
 
 # Functionality
 - Capture a 3D object with legacy animation into a sprite sheet (future support for modern animations planned)
