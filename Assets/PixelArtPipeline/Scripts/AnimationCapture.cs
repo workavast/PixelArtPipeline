@@ -21,7 +21,7 @@ namespace PixelArtPipeline
         private int framesPerSecond = 12;
         
         [SerializeField]
-        private bool frameRange;
+        private bool useFramesRange;
         
         [SerializeField, Min(0)]
         private int startFrame;
@@ -60,7 +60,7 @@ namespace PixelArtPipeline
             }
 
             var fullFramesCount = (int)(sourceClip.length * framesPerSecond);
-            if (!frameRange)
+            if (!useFramesRange)
             {
                 startFrame = 0;
                 endFrame = fullFramesCount - 1;
@@ -79,7 +79,7 @@ namespace PixelArtPipeline
 
             if (atlasSize.x > 4096 || atlasSize.y > 4096)
             {
-                Debug.LogErrorFormat($"Error attempting to capture an animation with a length and " +
+                Debug.LogError($"Error attempting to capture an animation with a length and " +
                                      $"resolution that would produce a texture of size: {atlasSize}");
             }
 
@@ -109,9 +109,9 @@ namespace PixelArtPipeline
 
             try
             {
-                for (var counter = 0; counter < framesCount; counter++)
+                for (var frameIndex = 0; frameIndex < framesCount; frameIndex++)
                 {
-                    var currentTime = ((startFrame + counter) / (float)(fullFramesCount - 1)) * sourceClip.length;
+                    var currentTime = ((startFrame + frameIndex) / (float)(fullFramesCount - 1)) * sourceClip.length;
                     
                     AnimationPreview(currentTime);
                     yield return null;
@@ -120,7 +120,7 @@ namespace PixelArtPipeline
 
                     atlasPos.x += cellSize.x;
 
-                    if ((counter + 1) % columns == 0)
+                    if ((frameIndex + 1) % columns == 0)
                     {
                         atlasPos.x = 0;
                         atlasPos.y -= cellSize.y;
@@ -177,10 +177,8 @@ namespace PixelArtPipeline
         /// <summary>
         /// Returns the ceiled square root of the input.
         /// </summary>
-        private int SqrtCeil(int input)
-        {
-            return Mathf.CeilToInt(Mathf.Sqrt(input));
-        }
+        private int SqrtCeil(int input) 
+            => Mathf.CeilToInt(Mathf.Sqrt(input));
 
         /// <summary>
         /// Sets all the pixels in the texture to a specified color.
@@ -188,10 +186,8 @@ namespace PixelArtPipeline
         private void ClearAtlas(Texture2D texture, Color color)
         {
             var pixels = new Color[texture.width * texture.height];
-            for (var i = 0; i < pixels.Length; i++)
-            {
+            for (var i = 0; i < pixels.Length; i++) 
                 pixels[i] = color;
-            }
 
             texture.SetPixels(pixels);
             texture.Apply();

@@ -77,69 +77,96 @@ namespace PixelArtPipeline.Editor
             {
                 EditorGUILayout.LabelField("Animation Options", EditorStyles.boldLabel);
          
-                var targetProp = animationCapture.FindPropertyRelative("target");
-                var sourceClipProp = animationCapture.FindPropertyRelative("sourceClip");
-                EditorGUILayout.PropertyField(targetProp);
-                EditorGUILayout.PropertyField(sourceClipProp);
+                var targetProperty = animationCapture.FindPropertyRelative("target");
+                var sourceClipProperty = animationCapture.FindPropertyRelative("sourceClip");
+                EditorGUILayout.PropertyField(targetProperty);
+                EditorGUILayout.PropertyField(sourceClipProperty);
 
-                if (targetProp.objectReferenceValue == null
-                    || sourceClipProp.objectReferenceValue == null)
+                if (targetProperty.objectReferenceValue == null
+                    || sourceClipProperty.objectReferenceValue == null)
                 {
                     EditorGUILayout.HelpBox(ASSIGN_REFS_INFO, MessageType.Info);
                     serializedObject.ApplyModifiedProperties();
                     return;
                 }
 
-                var sourceClip = (AnimationClip)sourceClipProp.objectReferenceValue;
+                var sourceClip = (AnimationClip)sourceClipProperty.objectReferenceValue;
 
-                var framesPerSecond = animationCapture.FindPropertyRelative("framesPerSecond");
-                EditorGUILayout.PropertyField(framesPerSecond);
+                var framesPerSecondProperty = animationCapture.FindPropertyRelative("framesPerSecond");
+                EditorGUILayout.PropertyField(framesPerSecondProperty);
 
-                var previewFrameProp = animationCapture.FindPropertyRelative("frameForPreview");
-                var framesCount = (int)(sourceClip.length * framesPerSecond.intValue) - 1;
+                var previewFrameProperty = animationCapture.FindPropertyRelative("frameForPreview");
+                var lastFrameIndex = (int)(sourceClip.length * framesPerSecondProperty.intValue) - 1;
             
                 using (var changeScope = new EditorGUI.ChangeCheckScope())
                 {
-                    var frame = previewFrameProp.intValue;
-                    frame = Mathf.Clamp(frame, 0, framesCount);
-                    frame = EditorGUILayout.IntSlider("Frame For Preview", frame, 0, framesCount);
+                    var previewFrame = previewFrameProperty.intValue;
+                    previewFrame = Mathf.Clamp(previewFrame, 0, lastFrameIndex);
+                    previewFrame = EditorGUILayout.IntSlider("Frame For Preview", previewFrame, 0, lastFrameIndex);
 
                     if (changeScope.changed)
                     {
-                        previewFrameProp.intValue = frame;
-                        helper.AnimationPreview((frame / (float)framesCount) * sourceClip.length);
+                        previewFrameProperty.intValue = previewFrame;
+                        helper.AnimationPreview((previewFrame / (float)lastFrameIndex) * sourceClip.length);
                     }
                 }
-            
-            
-                var frames = animationCapture.FindPropertyRelative("frameRange");
-                EditorGUILayout.PropertyField(frames);
 
-                if (frames.boolValue)
+                DrawFramesRangeOptions(animationCapture, lastFrameIndex);
+            }
+        }
+
+        private static void DrawFramesRangeOptions(SerializedProperty animationCapture, int lastFrameIndex)
+        {
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+            {
+                var useFramesRangeProperty = animationCapture.FindPropertyRelative("useFramesRange");
+                EditorGUILayout.PropertyField(useFramesRangeProperty);
+
+                if (useFramesRangeProperty.boolValue)
                 {
-                    var startFrame = animationCapture.FindPropertyRelative("startFrame");
+                    var startFrameProperty = animationCapture.FindPropertyRelative("startFrame");
                     using (var changeScope = new EditorGUI.ChangeCheckScope())
                     {
-                        var frame = startFrame.intValue;
-                        frame = Mathf.Clamp(frame, 0, framesCount);
-                        frame = EditorGUILayout.IntSlider("Start Frame", frame, 0, framesCount);
+                        var frame = startFrameProperty.intValue;
+                        frame = Mathf.Clamp(frame, 0, lastFrameIndex);
+                        frame = EditorGUILayout.IntSlider("Start Frame", frame, 0, lastFrameIndex);
 
                         if (changeScope.changed)
-                            startFrame.intValue = frame;
+                            startFrameProperty.intValue = frame;
                     }
             
-                    var endFrame = animationCapture.FindPropertyRelative("endFrame");
+                    var endFrameProperty = animationCapture.FindPropertyRelative("endFrame");
                     using (var changeScope = new EditorGUI.ChangeCheckScope())
                     {
-                        var frame = endFrame.intValue;
-                        frame = Mathf.Clamp(frame, 0, framesCount);
-                        frame = EditorGUILayout.IntSlider("End Frame", frame, 0, framesCount);
+                        var frame = endFrameProperty.intValue;
+                        frame = Mathf.Clamp(frame, 0, lastFrameIndex);
+                        frame = EditorGUILayout.IntSlider("End Frame", frame, 0, lastFrameIndex);
 
                         if (changeScope.changed)
-                            endFrame.intValue = frame;
+                            endFrameProperty.intValue = frame;
                     }  
                 }
             }
+        }
+        
+        /// <summary>
+        /// Saves the captured animation sprite atlases to disk.
+        /// </summary>
+        private static void SaveCapture(Texture2D diffuseMap, Texture2D normalMap)
+        {
+            var diffusePath = EditorUtility.SaveFilePanel("Save Capture", "", "NewCapture", "png");
+
+            if (string.IsNullOrEmpty(diffusePath))
+                return;
+
+            var fileName = Path.GetFileNameWithoutExtension(diffusePath);
+            var directory = Path.GetDirectoryName(diffusePath);
+            var normalPath = string.Format("{0}/{1}{2}.{3}", directory, fileName, "NormalMap", "png");
+
+            File.WriteAllBytes(diffusePath, diffuseMap.EncodeToPNG());
+            File.WriteAllBytes(normalPath, normalMap.EncodeToPNG());
+
+            AssetDatabase.Refresh();
         }
         
         /// <summary>
@@ -161,28 +188,6 @@ namespace PixelArtPipeline.Editor
                 EditorApplication.update -= UpdateRoutine;
                 _currentCaptureRoutine = null;
             }
-        }
-
-        /// <summary>
-        /// Saves the captured animation sprite atlases to disk.
-        /// </summary>
-        private void SaveCapture(Texture2D diffuseMap, Texture2D normalMap)
-        {
-            var diffusePath = EditorUtility.SaveFilePanel("Save Capture", "", "NewCapture", "png");
-
-            if (string.IsNullOrEmpty(diffusePath))
-            {
-                return;
-            }
-
-            var fileName = Path.GetFileNameWithoutExtension(diffusePath);
-            var directory = Path.GetDirectoryName(diffusePath);
-            var normalPath = string.Format("{0}/{1}{2}.{3}", directory, fileName, "NormalMap", "png");
-
-            File.WriteAllBytes(diffusePath, diffuseMap.EncodeToPNG());
-            File.WriteAllBytes(normalPath, normalMap.EncodeToPNG());
-
-            AssetDatabase.Refresh();
         }
     }
 }
