@@ -14,12 +14,12 @@ namespace PixelArtPipeline.Editor
         /// <summary>
         /// A message displayed when the target and source clip aren't assigned yet.
         /// </summary>
-        private const string ASSIGN_REFS_INFO = "Assign the Target and SourceClip to start previewing!";
+        private const string ASSIGN_REFS_INFO = "Assign the Target and SourceClip to start previewing";
 
         /// <summary>
         /// A message displayed when the capture camera isn't assigned yet.
         /// </summary>
-        private const string ASSIGN_CAMERA_INFO = "Assign a camera to start capturing!";
+        private const string ASSIGN_CAMERA_INFO = "Assign a camera to start capturing";
 
         /// <summary>
         /// The current capture routine in progress.
@@ -78,8 +78,9 @@ namespace PixelArtPipeline.Editor
                 EditorGUILayout.LabelField("Animation Options", EditorStyles.boldLabel);
          
                 var targetProperty = animationCapture.FindPropertyRelative("target");
-                var sourceClipProperty = animationCapture.FindPropertyRelative("sourceClip");
                 EditorGUILayout.PropertyField(targetProperty);
+                
+                var sourceClipProperty = animationCapture.FindPropertyRelative("sourceClip");
                 EditorGUILayout.PropertyField(sourceClipProperty);
 
                 if (targetProperty.objectReferenceValue == null
@@ -90,24 +91,24 @@ namespace PixelArtPipeline.Editor
                     return;
                 }
 
-                var sourceClip = (AnimationClip)sourceClipProperty.objectReferenceValue;
-
                 var framesPerSecondProperty = animationCapture.FindPropertyRelative("framesPerSecond");
                 EditorGUILayout.PropertyField(framesPerSecondProperty);
 
-                var previewFrameProperty = animationCapture.FindPropertyRelative("frameForPreview");
+                var sourceClip = (AnimationClip)sourceClipProperty.objectReferenceValue;
                 var lastFrameIndex = (int)(sourceClip.length * framesPerSecondProperty.intValue) - 1;
             
                 using (var changeScope = new EditorGUI.ChangeCheckScope())
                 {
-                    var previewFrame = previewFrameProperty.intValue;
-                    previewFrame = Mathf.Clamp(previewFrame, 0, lastFrameIndex);
-                    previewFrame = EditorGUILayout.IntSlider("Frame For Preview", previewFrame, 0, lastFrameIndex);
+                    var previewFrameProperty = animationCapture.FindPropertyRelative("frameForPreview");
+                    var previewFrameIndex = previewFrameProperty.intValue;
+                    
+                    previewFrameIndex = Mathf.Clamp(previewFrameIndex, 0, lastFrameIndex);
+                    previewFrameIndex = EditorGUILayout.IntSlider("Frame For Preview", previewFrameIndex, 0, lastFrameIndex);
 
                     if (changeScope.changed)
                     {
-                        previewFrameProperty.intValue = previewFrame;
-                        helper.AnimationPreview((previewFrame / (float)lastFrameIndex) * sourceClip.length);
+                        previewFrameProperty.intValue = previewFrameIndex;
+                        helper.AnimationPreview((previewFrameIndex / (float)lastFrameIndex) * sourceClip.length);
                     }
                 }
 
@@ -124,9 +125,9 @@ namespace PixelArtPipeline.Editor
 
                 if (useFramesRangeProperty.boolValue)
                 {
-                    var startFrameProperty = animationCapture.FindPropertyRelative("startFrame");
                     using (var changeScope = new EditorGUI.ChangeCheckScope())
                     {
+                        var startFrameProperty = animationCapture.FindPropertyRelative("startFrame");
                         var frame = startFrameProperty.intValue;
                         frame = Mathf.Clamp(frame, 0, lastFrameIndex);
                         frame = EditorGUILayout.IntSlider("Start Frame", frame, 0, lastFrameIndex);
@@ -135,9 +136,9 @@ namespace PixelArtPipeline.Editor
                             startFrameProperty.intValue = frame;
                     }
             
-                    var endFrameProperty = animationCapture.FindPropertyRelative("endFrame");
                     using (var changeScope = new EditorGUI.ChangeCheckScope())
                     {
+                        var endFrameProperty = animationCapture.FindPropertyRelative("endFrame");
                         var frame = endFrameProperty.intValue;
                         frame = Mathf.Clamp(frame, 0, lastFrameIndex);
                         frame = EditorGUILayout.IntSlider("End Frame", frame, 0, lastFrameIndex);
@@ -161,7 +162,7 @@ namespace PixelArtPipeline.Editor
 
             var fileName = Path.GetFileNameWithoutExtension(diffusePath);
             var directory = Path.GetDirectoryName(diffusePath);
-            var normalPath = string.Format("{0}/{1}{2}.{3}", directory, fileName, "NormalMap", "png");
+            var normalPath = $"{directory}/{fileName}NormalMap.png";
 
             File.WriteAllBytes(diffusePath, diffuseMap.EncodeToPNG());
             File.WriteAllBytes(normalPath, normalMap.EncodeToPNG());
