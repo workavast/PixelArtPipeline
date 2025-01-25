@@ -63,7 +63,7 @@ namespace PixelArtPipeline
             if (!frameRange)
             {
                 startFrame = 0;
-                endFrame = fullFramesCount;
+                endFrame = fullFramesCount - 1;
             }
             else
             {
@@ -111,7 +111,7 @@ namespace PixelArtPipeline
             {
                 for (var counter = 0; counter < framesCount; counter++)
                 {
-                    var currentTime = ((startFrame + counter) / (float)fullFramesCount) * sourceClip.length;
+                    var currentTime = ((startFrame + counter) / (float)(fullFramesCount - 1)) * sourceClip.length;
                     
                     AnimationPreview(currentTime);
                     yield return null;

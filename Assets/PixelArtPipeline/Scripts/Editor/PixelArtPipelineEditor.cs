@@ -96,7 +96,7 @@ namespace PixelArtPipeline.Editor
                 EditorGUILayout.PropertyField(framesPerSecond);
 
                 var previewFrameProp = animationCapture.FindPropertyRelative("frameForPreview");
-                var framesCount = (int)(sourceClip.length * framesPerSecond.intValue);
+                var framesCount = (int)(sourceClip.length * framesPerSecond.intValue) - 1;
             
                 using (var changeScope = new EditorGUI.ChangeCheckScope())
                 {
