@@ -111,7 +111,8 @@ namespace PixelArtPipeline
             {
                 for (var counter = 0; counter < framesCount; counter++)
                 {
-                    var currentTime = (startFrame + counter / (float)fullFramesCount) * sourceClip.length;
+                    var currentTime = ((startFrame + counter) / (float)fullFramesCount) * sourceClip.length;
+                    
                     AnimationPreview(currentTime);
                     yield return null;
 
