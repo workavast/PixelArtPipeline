@@ -12,7 +12,7 @@ In editor tool to render 3D object as sprite sheet or single sprite with normal 
 - Capture a single frame from the camera’s view
 - Set sprites resolution (named as "Cell Size")
 
-![image](https://github.com/user-attachments/assets/d88be797-03e2-4d7e-9fa6-0b6982df9009)
+![image](https://github.com/user-attachments/assets/9e16bbe1-3ecb-47c9-adbe-ff1e5e4d3266)
 
 # How to use
 - Navigate to Assets/PixelArtPipeline/Demo/Scenes/CaptureScene.unity to explore and test the setup
