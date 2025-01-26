@@ -5,7 +5,7 @@ Based on [PixelArtPipeline](https://github.com/Broxxar/PixelArtPipeline) of [Bro
 In editor tool to render 3D object as sprite sheet or single sprite with normal map — based on the character art pipeline of the [Dead Cells](https://dead-cells.com/)
 
 # Functionality
-- Capture a 3D object with legacy animation into a sprite sheet (future support for modern animations planned)
+- Capture a 3D object with animation into a sprite sheet
 - Set count of the frames per second to the capture of animation
 - Set start and end frames of your animation
 - Preview animation (not result of capture)
