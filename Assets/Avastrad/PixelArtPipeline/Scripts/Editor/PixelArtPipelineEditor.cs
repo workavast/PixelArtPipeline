@@ -3,7 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace PixelArtPipeline.Editor
+namespace Avastrad.PixelArtPipeline.Editor
 {
     /// <summary>
     /// Custom editor for the AnimationCaptureHelper.

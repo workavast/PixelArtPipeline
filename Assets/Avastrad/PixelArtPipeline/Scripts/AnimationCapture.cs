@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace PixelArtPipeline
+namespace Avastrad.PixelArtPipeline
 {
     [Serializable]
     public class AnimationCapture : CaptureBase

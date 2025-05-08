@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace PixelArtPipeline
+namespace Avastrad.PixelArtPipeline
 {
     /// <summary>
     /// A component used to help capture screenshot or FBX animations into sprite sheets.

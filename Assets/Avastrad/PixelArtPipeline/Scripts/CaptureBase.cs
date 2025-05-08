@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-namespace PixelArtPipeline
+namespace Avastrad.PixelArtPipeline
 {
     public abstract class CaptureBase
     {
