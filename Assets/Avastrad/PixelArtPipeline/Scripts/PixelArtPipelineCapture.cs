@@ -24,12 +24,6 @@ namespace Avastrad.PixelArtPipeline
         
         private const string VerticalText = "Not\nBe\nCaptured";
         private const string HorizontalText = "Not Be Captured";
-        
-        private void OnGUI()
-        {
-            if (showDeadZone)
-                DrawDeadZone();
-        }
 
         public IEnumerator CaptureAnimation(Action<Texture2D, Texture2D> onComplete)
             => animationCapture.Capture(captureCamera, cellSize, onComplete);
@@ -40,6 +34,20 @@ namespace Avastrad.PixelArtPipeline
         public void AnimationPreview(float time)
             => animationCapture.AnimationPreview(time);
 
+        private void OnValidate()
+        {
+            var validatedResolution = cellSize;
+            validatedResolution.x = Mathf.Clamp(validatedResolution.x, 1, int.MaxValue);
+            validatedResolution.y = Mathf.Clamp(validatedResolution.y, 1, int.MaxValue);
+            cellSize = validatedResolution;
+        }
+
+        private void OnGUI()
+        {
+            if (showDeadZone)
+                DrawDeadZone();
+        }
+        
         private void DrawDeadZone()
         {
             if (captureCamera == null)
