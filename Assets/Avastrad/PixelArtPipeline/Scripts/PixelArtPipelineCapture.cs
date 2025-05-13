@@ -10,10 +10,10 @@ namespace Avastrad.PixelArtPipeline
     [ExecuteInEditMode]
     public class PixelArtPipelineCapture : MonoBehaviour
     {
-        [SerializeField, Tooltip("The camera used to render the animation.")]
+        [SerializeField, Tooltip("The camera used to render the animation")]
         private Camera captureCamera = null;
 
-        [SerializeField, Tooltip("The output resolution of the one rendered sprite frame.")]
+        [SerializeField, Tooltip("The output resolution of the one rendered sprite frame")]
         private Vector2Int cellSize = new Vector2Int(128, 128);
         
         [SerializeField] private bool showDeadZone = true;

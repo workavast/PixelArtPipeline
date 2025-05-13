@@ -15,7 +15,7 @@ namespace Avastrad.PixelArtPipeline
         private AnimationClip sourceClip ;
 
         [SerializeField, Min(0), Tooltip("The frame for preview")]
-        private int frameForPreview;
+        private int frameForPreview;//used in the editor class, dont delete it
 
         [SerializeField, Min(1)]
         private int framesPerSecond = 12;
