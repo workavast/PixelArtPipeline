@@ -63,6 +63,9 @@ namespace Avastrad.PixelArtPipeline.Editor
                 var resolutionProp = serializedObject.FindProperty("cellSize");
                 EditorGUILayout.PropertyField(resolutionProp);
             
+                var showDeadZoneProp = serializedObject.FindProperty("showDeadZone");
+                EditorGUILayout.PropertyField(showDeadZoneProp);
+                
                 if (GUILayout.Button("Capture Screen"))
                     RunRoutine(helper.CaptureFrame(SaveCapture));
             
