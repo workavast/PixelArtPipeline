@@ -1,4 +1,4 @@
-﻿Shader "Hidden/ViewSpaceNormal"
+﻿Shader "Hidden/ViewSpaceNormal_BuiltIn"
 {
 	SubShader
 	{

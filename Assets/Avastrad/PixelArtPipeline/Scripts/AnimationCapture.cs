@@ -102,9 +102,7 @@ namespace Avastrad.PixelArtPipeline
                 antiAliasing = 1,
                 hideFlags = HideFlags.HideAndDontSave
             };
-
-            var normalCaptureShader = Shader.Find("Hidden/ViewSpaceNormal");
-
+            
             captureCamera.targetTexture = rtFrame;
             var cachedCameraColor = captureCamera.backgroundColor;
 
@@ -117,7 +115,7 @@ namespace Avastrad.PixelArtPipeline
                     AnimationPreview(currentTime);
                     yield return null;
 
-                    FillFrame(rtFrame, diffuseMap, normalMap, atlasPos, normalCaptureShader, captureCamera);
+                    FillFrame(rtFrame, diffuseMap, normalMap, atlasPos, captureCamera);
 
                     atlasPos.x += cellSize.x;
 
