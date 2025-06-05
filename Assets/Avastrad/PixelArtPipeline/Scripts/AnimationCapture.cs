@@ -51,7 +51,6 @@ namespace Avastrad.PixelArtPipeline
         /// and Camera.Render(). The provided onComplete action is executed after rendering is finished
         /// so that the textures can be saved to disk.
         /// </summary>
-        
         public override IEnumerator Capture(Camera captureCamera, Vector2Int cellSize, Action<Texture2D, Texture2D> onComplete)
         {
             if (sourceClip == null || target == null)
@@ -80,8 +79,9 @@ namespace Avastrad.PixelArtPipeline
 
             if (atlasSize.x > 4096 || atlasSize.y > 4096)
             {
-                Debug.LogError($"Error attempting to capture an animation with a length and " +
-                                     $"resolution that would produce a texture of size: {atlasSize}");
+                Debug.LogError($"If atlas resolution higher then 8192, can happened OutOfMemoryException. " +
+                               $"Current resolution is {atlasSize}");
+                yield break;
             }
 
             var diffuseMap = new Texture2D(atlasSize.x, atlasSize.y, TextureFormat.ARGB32, false)
