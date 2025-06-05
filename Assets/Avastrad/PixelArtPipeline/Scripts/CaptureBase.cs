@@ -10,6 +10,32 @@ namespace Avastrad.PixelArtPipeline
     {
         public abstract IEnumerator Capture(Camera captureCamera, Vector2Int cellSize, Action<Texture2D, Texture2D> onComplete);
 
+        protected static Action PrepareCamera(Camera captureCamera, Vector2Int cellSize)
+        {
+            var cameraAspect = captureCamera.pixelWidth / captureCamera.pixelHeight;
+            var targetAspect = (float)cellSize.x / cellSize.y;
+            if (targetAspect <= cameraAspect)
+                return null;
+
+            if (captureCamera.orthographic)
+            {
+                var originalOrthoSize = captureCamera.orthographicSize;
+                var originalAspect = captureCamera.aspect;
+                
+                var targetOrthoSize = originalOrthoSize * (originalAspect / targetAspect);
+                captureCamera.orthographicSize = targetOrthoSize;
+
+                return () => { captureCamera.orthographicSize = originalOrthoSize; };
+            }
+            else
+            {
+                var originalHorFov = Camera.VerticalToHorizontalFieldOfView(captureCamera.fieldOfView, captureCamera.aspect);
+                captureCamera.fieldOfView = Camera.HorizontalToVerticalFieldOfView(originalHorFov, targetAspect);
+                
+                return () => { captureCamera.fieldOfView = Camera.HorizontalToVerticalFieldOfView(originalHorFov, captureCamera.aspect); };
+            }
+        }
+        
         /// <summary>
         /// Sets all the pixels in the texture to a specified color.
         /// </summary>

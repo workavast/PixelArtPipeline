@@ -10,6 +10,8 @@ namespace Avastrad.PixelArtPipeline
     {
         public override IEnumerator Capture(Camera captureCamera, Vector2Int cellSize, Action<Texture2D, Texture2D> onComplete)
         {
+            var restoreCameraAction = PrepareCamera(captureCamera, cellSize);
+            
             var atlasSize = CalculateAtlasSize(cellSize, 1, out var columns);
             var atlasPos = new Vector2Int(0, atlasSize.y - cellSize.y);
 
@@ -55,6 +57,7 @@ namespace Avastrad.PixelArtPipeline
                 captureCamera.targetTexture = null;
                 captureCamera.backgroundColor = cachedCameraColor;
                 Object.DestroyImmediate(rtFrame);
+                restoreCameraAction?.Invoke();
             }
         }
     }

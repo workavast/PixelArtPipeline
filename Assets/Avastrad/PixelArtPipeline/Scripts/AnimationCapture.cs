@@ -77,12 +77,14 @@ namespace Avastrad.PixelArtPipeline
             var atlasSize = CalculateAtlasSize(cellSize, framesCount, out var columns);
             var atlasPos = new Vector2Int(0, atlasSize.y - cellSize.y);
 
-            if (atlasSize.x > 4096 || atlasSize.y > 4096)
+            if (atlasSize.x > 8192 || atlasSize.y > 8192)
             {
                 Debug.LogError($"If atlas resolution higher then 8192, can happened OutOfMemoryException. " +
                                $"Current resolution is {atlasSize}");
                 yield break;
             }
+            
+            var restoreCameraAction = PrepareCamera(captureCamera, cellSize);
 
             var diffuseMap = new Texture2D(atlasSize.x, atlasSize.y, TextureFormat.ARGB32, false)
             {
@@ -134,6 +136,7 @@ namespace Avastrad.PixelArtPipeline
                 captureCamera.targetTexture = null;
                 captureCamera.backgroundColor = cachedCameraColor;
                 Object.DestroyImmediate(rtFrame);
+                restoreCameraAction?.Invoke();
             }
         }
     }
