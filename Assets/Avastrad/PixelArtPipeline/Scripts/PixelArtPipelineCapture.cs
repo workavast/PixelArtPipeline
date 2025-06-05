@@ -32,7 +32,7 @@ namespace Avastrad.PixelArtPipeline
             => singleFrameCapture.Capture(captureCamera, cellSize, onComplete);
     
         public void AnimationPreview(float time)
-            => animationCapture.AnimationPreview(time);
+            => animationCapture.SetAnimationTime(time);
 
         private void OnValidate()
         {

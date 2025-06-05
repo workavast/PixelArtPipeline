@@ -28,20 +28,6 @@ namespace Avastrad.PixelArtPipeline
         
         [SerializeField, Min(0)]
         private int endFrame;
-        
-        /// <summary>
-        /// Samples the animation clip onto the target object.
-        /// </summary>
-        public void AnimationPreview(float time)
-        {
-            if (sourceClip == null || target == null)
-            {
-                Debug.LogError("SourceClip and Target should be set before animation preview!");
-                return;
-            }
-
-            sourceClip.SampleAnimation(target, time);
-        }
 
         /// <summary>
         /// Captures the animation as individual frames into a texture.
@@ -55,7 +41,7 @@ namespace Avastrad.PixelArtPipeline
         {
             if (sourceClip == null || target == null)
             {
-                Debug.LogError("CaptureCamera should be set before capturing animation!");
+                Debug.LogError("CaptureCamera and target should be set before capturing animation!");
                 yield break;
             }
 
@@ -73,58 +59,40 @@ namespace Avastrad.PixelArtPipeline
                     yield break;
                 }
             }
+            
             var framesCount = endFrame - startFrame + 1;
             var atlasSize = CalculateAtlasSize(cellSize, framesCount, out var columns);
-            var atlasPos = new Vector2Int(0, atlasSize.y - cellSize.y);
-
             if (atlasSize.x > 8192 || atlasSize.y > 8192)
             {
                 Debug.LogError($"If atlas resolution higher then 8192, can happened OutOfMemoryException. " +
                                $"Current resolution is {atlasSize}");
                 yield break;
             }
+
+            var diffuseMap = CreateDiffuseMap(atlasSize);
+            var normalMap = CreateNormalMap(atlasSize);
+            var rtFrame = CreateRenderTextureFrame(cellSize);
             
-            var restoreCameraAction = PrepareCamera(captureCamera, cellSize);
-
-            var diffuseMap = new Texture2D(atlasSize.x, atlasSize.y, TextureFormat.ARGB32, false)
-            {
-                filterMode = FilterMode.Point
-            };
-            ClearAtlas(diffuseMap, Color.clear);
-
-            var normalMap = new Texture2D(atlasSize.x, atlasSize.y, TextureFormat.ARGB32, false)
-            {
-                filterMode = FilterMode.Point
-            };
-            ClearAtlas(normalMap, new Color(0.5f, 0.5f, 1.0f, 0.0f));
-
-            var rtFrame = new RenderTexture(cellSize.x, cellSize.y, 24, RenderTextureFormat.ARGB32)
-            {
-                filterMode = FilterMode.Point,
-                antiAliasing = 1,
-                hideFlags = HideFlags.HideAndDontSave
-            };
-            
-            captureCamera.targetTexture = rtFrame;
-            var cachedCameraColor = captureCamera.backgroundColor;
+            var restoreCameraAction = PrepareCamera(captureCamera, cellSize, rtFrame);
 
             try
             {
+                var atlasFramePosition = new Vector2Int(0, atlasSize.y - cellSize.y);
                 for (var frameIndex = 0; frameIndex < framesCount; frameIndex++)
                 {
                     var currentTime = ((startFrame + frameIndex) / (float)(fullFramesCount - 1)) * sourceClip.length;
+                    SetAnimationTime(currentTime);
                     
-                    AnimationPreview(currentTime);
                     yield return null;
+                    
+                    RenderMaps(rtFrame, diffuseMap, normalMap, atlasFramePosition, captureCamera);
 
-                    FillFrame(rtFrame, diffuseMap, normalMap, atlasPos, captureCamera);
-
-                    atlasPos.x += cellSize.x;
+                    atlasFramePosition.x += cellSize.x;
 
                     if ((frameIndex + 1) % columns == 0)
                     {
-                        atlasPos.x = 0;
-                        atlasPos.y -= cellSize.y;
+                        atlasFramePosition.x = 0;
+                        atlasFramePosition.y -= cellSize.y;
                     }
                 }
 
@@ -132,12 +100,24 @@ namespace Avastrad.PixelArtPipeline
             }
             finally
             {
-                Graphics.SetRenderTarget(null);
-                captureCamera.targetTexture = null;
-                captureCamera.backgroundColor = cachedCameraColor;
-                Object.DestroyImmediate(rtFrame);
                 restoreCameraAction?.Invoke();
+                Graphics.SetRenderTarget(null);
+                Object.DestroyImmediate(rtFrame);
             }
+        }
+        
+        /// <summary>
+        /// Samples the animation clip onto the target object.
+        /// </summary>
+        public void SetAnimationTime(float time)
+        {
+            if (sourceClip == null || target == null)
+            {
+                Debug.LogError("SourceClip and Target should be set before animation preview!");
+                return;
+            }
+
+            sourceClip.SampleAnimation(target, time);
         }
     }
 }

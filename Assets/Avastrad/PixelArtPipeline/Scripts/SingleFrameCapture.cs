@@ -10,54 +10,33 @@ namespace Avastrad.PixelArtPipeline
     {
         public override IEnumerator Capture(Camera captureCamera, Vector2Int cellSize, Action<Texture2D, Texture2D> onComplete)
         {
-            var restoreCameraAction = PrepareCamera(captureCamera, cellSize);
-            
-            var atlasSize = CalculateAtlasSize(cellSize, 1, out var columns);
-            var atlasPos = new Vector2Int(0, atlasSize.y - cellSize.y);
-
+            var atlasSize = CalculateAtlasSize(cellSize, 1, out _);
             if (atlasSize.x > 8192 || atlasSize.y > 8192)
             {
                 Debug.LogError($"If atlas resolution higher then 8192, can happened OutOfMemoryException. " +
                                $"Current resolution is {atlasSize}");
                 yield break;
             }
-
-            var diffuseMap = new Texture2D(atlasSize.x, atlasSize.y, TextureFormat.ARGB32, false)
-            {
-                filterMode = FilterMode.Point
-            };
-            ClearAtlas(diffuseMap, Color.clear);
-
-            var normalMap = new Texture2D(atlasSize.x, atlasSize.y, TextureFormat.ARGB32, false)
-            {
-                filterMode = FilterMode.Point
-            };
-            ClearAtlas(normalMap, new Color(0.5f, 0.5f, 1.0f, 0.0f));
-
-            var rtFrame = new RenderTexture(cellSize.x, cellSize.y, 24, RenderTextureFormat.ARGB32)
-            {
-                filterMode = FilterMode.Point,
-                antiAliasing = 1,
-                hideFlags = HideFlags.HideAndDontSave
-            };
             
-            captureCamera.targetTexture = rtFrame;
-            var cachedCameraColor = captureCamera.backgroundColor;
+            var diffuseMap = CreateDiffuseMap(atlasSize);
+            var normalMap = CreateNormalMap(atlasSize);
+            var rtFrame = CreateRenderTextureFrame(cellSize);
+            
+            var restoreCameraAction = PrepareCamera(captureCamera, cellSize, rtFrame);
 
             try
             {
                 yield return null;
 
-                FillFrame(rtFrame, diffuseMap, normalMap, atlasPos, captureCamera);
+                var atlasFramePosition = new Vector2Int(0, atlasSize.y - cellSize.y);
+                RenderMaps(rtFrame, diffuseMap, normalMap, atlasFramePosition, captureCamera);
                 onComplete.Invoke(diffuseMap, normalMap);
             }
             finally
             {
-                Graphics.SetRenderTarget(null);
-                captureCamera.targetTexture = null;
-                captureCamera.backgroundColor = cachedCameraColor;
-                Object.DestroyImmediate(rtFrame);
                 restoreCameraAction?.Invoke();
+                Graphics.SetRenderTarget(null);
+                Object.DestroyImmediate(rtFrame);
             }
         }
     }

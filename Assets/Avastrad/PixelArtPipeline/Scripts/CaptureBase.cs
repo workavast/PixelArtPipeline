@@ -9,46 +9,97 @@ namespace Avastrad.PixelArtPipeline
     public abstract class CaptureBase
     {
         public abstract IEnumerator Capture(Camera captureCamera, Vector2Int cellSize, Action<Texture2D, Texture2D> onComplete);
-
-        protected static Action PrepareCamera(Camera captureCamera, Vector2Int cellSize)
+        
+        protected static Texture2D CreateDiffuseMap(Vector2Int atlasSize)
+        {
+            var diffuseMap = new Texture2D(atlasSize.x, atlasSize.y, TextureFormat.ARGB32, false)
+            {
+                filterMode = FilterMode.Point
+            };
+            FillTexture(diffuseMap, Color.clear);
+            return diffuseMap;
+        }
+        
+        protected static Texture2D CreateNormalMap(Vector2Int atlasSize)
+        {
+            var normalMap = new Texture2D(atlasSize.x, atlasSize.y, TextureFormat.ARGB32, false)
+            {
+                filterMode = FilterMode.Point
+            };
+            FillTexture(normalMap, new Color(0.5f, 0.5f, 1.0f, 0.0f));
+            return normalMap;
+        }
+        
+        protected static RenderTexture CreateRenderTextureFrame(Vector2Int cellSize)
+        {
+            return new RenderTexture(cellSize.x, cellSize.y, 24, RenderTextureFormat.ARGB32)
+            {
+                filterMode = FilterMode.Point,
+                antiAliasing = 1,
+                hideFlags = HideFlags.HideAndDontSave
+            };
+        }
+        
+        protected static Action PrepareCamera(Camera captureCamera, Vector2Int cellSize, RenderTexture rtFrame)
         {
             var cameraAspect = captureCamera.pixelWidth / captureCamera.pixelHeight;
+            Debug.Log(captureCamera.pixelWidth);
+            Debug.Log(captureCamera.pixelHeight);
             var targetAspect = (float)cellSize.x / cellSize.y;
             if (targetAspect <= cameraAspect)
-                return null;
+            {
+                var originalCameraColor = captureCamera.backgroundColor;
+                captureCamera.targetTexture = rtFrame;
+                return () =>
+                {
+                    captureCamera.targetTexture = null;
+                    captureCamera.backgroundColor = originalCameraColor;
+                };
+            }
 
+            Debug.Log("ASDSA");
+            
             if (captureCamera.orthographic)
             {
+                Debug.Log("orthographic");
                 var originalOrthoSize = captureCamera.orthographicSize;
                 var originalAspect = captureCamera.aspect;
                 
+                Debug.Log(originalOrthoSize);
+                Debug.Log(originalAspect);
+                Debug.Log(cameraAspect);
+                Debug.Log(targetAspect);
                 var targetOrthoSize = originalOrthoSize * (originalAspect / targetAspect);
                 captureCamera.orthographicSize = targetOrthoSize;
+                Debug.Log(captureCamera.orthographicSize);
 
-                return () => { captureCamera.orthographicSize = originalOrthoSize; };
+                var originalCameraColor = captureCamera.backgroundColor;
+                captureCamera.targetTexture = rtFrame;
+                
+                return () =>
+                {
+                    captureCamera.targetTexture = null;
+                    captureCamera.backgroundColor = originalCameraColor;
+                    captureCamera.orthographicSize = originalOrthoSize;
+                };
             }
             else
             {
                 var originalHorFov = Camera.VerticalToHorizontalFieldOfView(captureCamera.fieldOfView, captureCamera.aspect);
                 captureCamera.fieldOfView = Camera.HorizontalToVerticalFieldOfView(originalHorFov, targetAspect);
+
+                var originalCameraColor = captureCamera.backgroundColor;
+                captureCamera.targetTexture = rtFrame;
                 
-                return () => { captureCamera.fieldOfView = Camera.HorizontalToVerticalFieldOfView(originalHorFov, captureCamera.aspect); };
+                return () =>
+                {
+                    captureCamera.targetTexture = null;
+                    captureCamera.backgroundColor = originalCameraColor;
+                    captureCamera.fieldOfView = Camera.HorizontalToVerticalFieldOfView(originalHorFov, captureCamera.aspect);
+                };
             }
         }
         
-        /// <summary>
-        /// Sets all the pixels in the texture to a specified color.
-        /// </summary>
-        protected static void ClearAtlas(Texture2D texture, Color color)
-        {
-            var pixels = new Color[texture.width * texture.height];
-            for (var i = 0; i < pixels.Length; i++)
-                pixels[i] = color;
-
-            texture.SetPixels(pixels);
-            texture.Apply();
-        }
-
         protected static Vector2Int CalculateAtlasSize(Vector2Int cellSize, int framesCount, out int columnsCount)
         {
             var framesCountPow = Mathf.CeilToInt(Mathf.Log(framesCount, 2));
@@ -69,18 +120,11 @@ namespace Avastrad.PixelArtPipeline
             return new Vector2Int(cellSize.x * columnsCount, cellSize.y * gridCellCount);
         }
 
-        protected static void FillFrame(RenderTexture rtFrame, Texture2D diffuseMap, Texture2D normalMap,
+        protected static void RenderMaps(RenderTexture rtFrame, Texture2D diffuseMap, Texture2D normalMap,
             Vector2Int atlasPos, Camera captureCamera)
         {
             RenderDiffuseMap(rtFrame, diffuseMap, atlasPos, captureCamera);
-
-            var pipelineAsset = GraphicsSettings.renderPipelineAsset;
-            if (pipelineAsset == null)
-                RenderNormalMap_BuiltIn(rtFrame, normalMap, atlasPos, captureCamera);
-            else if (pipelineAsset.GetType().ToString().Contains("UniversalRenderPipelineAsset"))
-                RenderNormalMap_URP(rtFrame, normalMap, atlasPos, captureCamera);
-            else
-                Debug.LogError("Undefined render pipeline");
+            RenderNormalMap(rtFrame, normalMap, atlasPos, captureCamera);
         }
 
         private static void RenderDiffuseMap(RenderTexture rtFrame, Texture2D diffuseMap, Vector2Int atlasPos,
@@ -92,13 +136,26 @@ namespace Avastrad.PixelArtPipeline
             diffuseMap.ReadPixels(new Rect(0, 0, rtFrame.width, rtFrame.height), atlasPos.x, atlasPos.y);
             diffuseMap.Apply();
         }
-
+        
+        private static void RenderNormalMap(RenderTexture rtFrame, Texture2D normalMap,
+            Vector2Int atlasPos, Camera captureCamera)
+        {
+            var pipelineAsset = GraphicsSettings.renderPipelineAsset;
+            if (pipelineAsset == null)
+                RenderNormalMap_BuiltIn(rtFrame, normalMap, atlasPos, captureCamera);
+            else if (pipelineAsset.GetType().ToString().Contains("UniversalRenderPipelineAsset"))
+                RenderNormalMap_URP(rtFrame, normalMap, atlasPos, captureCamera);
+            else
+                Debug.LogError("Undefined render pipeline");   
+        }
+        
         private static void RenderNormalMap_BuiltIn(RenderTexture rtFrame, Texture2D normalMap, Vector2Int atlasPos,
             Camera captureCamera)
         {
-            var normalShader = Shader.Find("Hidden/ViewSpaceNormal_BuiltIn");
+            const string shader = "Hidden/ViewSpaceNormal_BuiltIn";
+            var normalShader = Shader.Find(shader);
             if (normalShader == null)
-                throw new NullReferenceException("Cant find shader: Hidden/ViewSpaceNormal_BuiltIn");
+                throw new NullReferenceException($"Cant find shader: {shader}");
 
             captureCamera.backgroundColor = new Color(0.5f, 0.5f, 1.0f, 0.0f);
             captureCamera.RenderWithShader(normalShader, "");
@@ -107,12 +164,13 @@ namespace Avastrad.PixelArtPipeline
             normalMap.Apply();
         }
 
-        protected static void RenderNormalMap_URP(RenderTexture rtFrame, Texture2D normalMap,
+        private static void RenderNormalMap_URP(RenderTexture rtFrame, Texture2D normalMap,
             Vector2Int atlasPos, Camera captureCamera)
         {
-            var normalShader = Shader.Find("Hidden/ViewSpaceNormal_URP");
+            const string shader = "Hidden/ViewSpaceNormal_URP";
+            var normalShader = Shader.Find(shader);
             if (normalShader == null)
-                throw new NullReferenceException("Cant find shader: Hidden/ViewSpaceNormal_URP");
+                throw new NullReferenceException($"Cant find shader: {shader}");
 
             var originalMaterials = new Dictionary<Renderer, Material[]>();
             var allRenderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
@@ -138,7 +196,20 @@ namespace Avastrad.PixelArtPipeline
             foreach (var kvp in originalMaterials)
                 kvp.Key.sharedMaterials = kvp.Value;
         }
+      
+        /// <summary>
+        /// Sets all the pixels in the texture to a specified color.
+        /// </summary>
+        private static void FillTexture(Texture2D texture, Color color)
+        {
+            var pixels = new Color[texture.width * texture.height];
+            for (var i = 0; i < pixels.Length; i++)
+                pixels[i] = color;
 
+            texture.SetPixels(pixels);
+            texture.Apply();
+        }
+        
         /// <summary>
         /// Returns the ceil-ed square root of the input.
         /// </summary>
