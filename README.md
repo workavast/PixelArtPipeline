@@ -33,7 +33,7 @@ or
 
 Tip: In most cases i think you prefer use unlit materials on your 3D object without any lighting on the scene. However, any materials types and light setup can be used based on your preferences.
 
-# Result Exemple (with 2D cel shader)
+# Example of result (with 2D cel shader)
 
 ![Source](https://github.com/user-attachments/assets/7491dcde-7629-4aab-b6d0-b7dd1b7bc062)
 ![Result](https://github.com/user-attachments/assets/27f68948-f6b6-478a-a757-05029921596f)
