@@ -17,6 +17,7 @@ namespace Avastrad.PixelArtPipeline
         private Vector2Int cellSize = new Vector2Int(128, 128);
         
         [SerializeField] private bool showDeadZone = true;
+        [SerializeField] private bool createNormalMap = true;
         [SerializeField] private AnimationCapture animationCapture;
         [SerializeField] private SingleFrameCapture singleFrameCapture;
         
@@ -26,10 +27,10 @@ namespace Avastrad.PixelArtPipeline
         private const string HorizontalText = "Not Be Captured";
 
         public IEnumerator CaptureAnimation(Action<Texture2D, Texture2D> onComplete)
-            => animationCapture.Capture(captureCamera, cellSize, onComplete);
+            => animationCapture.Capture(captureCamera, createNormalMap, cellSize, onComplete);
 
         public IEnumerator CaptureFrame(Action<Texture2D, Texture2D> onComplete)
-            => singleFrameCapture.Capture(captureCamera, cellSize, onComplete);
+            => singleFrameCapture.Capture(captureCamera, createNormalMap, cellSize, onComplete);
     
         public void AnimationPreview(float time)
             => animationCapture.SetAnimationTime(time);

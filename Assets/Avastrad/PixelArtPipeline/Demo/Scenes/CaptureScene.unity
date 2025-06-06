@@ -267,6 +267,7 @@ MonoBehaviour:
   captureCamera: {fileID: 763327835}
   cellSize: {x: 128, y: 128}
   showDeadZone: 1
+  createNormalMap: 1
   animationCapture:
     target: {fileID: 1090548090}
     sourceClip: {fileID: 7400000, guid: d1b7b17b13c113a4390bd9c3c870b4a4, type: 3}

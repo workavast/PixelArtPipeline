@@ -37,7 +37,7 @@ namespace Avastrad.PixelArtPipeline
         /// and Camera.Render(). The provided onComplete action is executed after rendering is finished
         /// so that the textures can be saved to disk.
         /// </summary>
-        public override IEnumerator Capture(Camera captureCamera, Vector2Int cellSize, Action<Texture2D, Texture2D> onComplete)
+        public override IEnumerator Capture(Camera captureCamera, bool createNormalMap, Vector2Int cellSize, Action<Texture2D, Texture2D> onComplete)
         {
             if (sourceClip == null || target == null)
             {
@@ -70,7 +70,7 @@ namespace Avastrad.PixelArtPipeline
             }
 
             var diffuseMap = CreateDiffuseMap(atlasSize);
-            var normalMap = CreateNormalMap(atlasSize);
+            var normalMap = createNormalMap ? CreateNormalMap(atlasSize) : null;
             var rtFrame = CreateRenderTextureFrame(cellSize);
             
             var restoreCameraAction = PrepareCamera(captureCamera, cellSize, rtFrame);

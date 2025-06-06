@@ -52,7 +52,7 @@ namespace Avastrad.PixelArtPipeline.Editor
 
                 var captureCameraProp = serializedObject.FindProperty("captureCamera");
                 EditorGUILayout.ObjectField(captureCameraProp, typeof(Camera));
-
+                
                 if (captureCameraProp.objectReferenceValue == null)
                 {
                     EditorGUILayout.HelpBox(ASSIGN_CAMERA_INFO, MessageType.Info);
@@ -62,9 +62,12 @@ namespace Avastrad.PixelArtPipeline.Editor
 
                 var resolutionProp = serializedObject.FindProperty("cellSize");
                 EditorGUILayout.PropertyField(resolutionProp);
-            
+                
                 var showDeadZoneProp = serializedObject.FindProperty("showDeadZone");
                 EditorGUILayout.PropertyField(showDeadZoneProp);
+                
+                var createNormalMapProp = serializedObject.FindProperty("createNormalMap");
+                EditorGUILayout.PropertyField(createNormalMapProp);
                 
                 if (GUILayout.Button("Capture Screen"))
                     RunRoutine(helper.CaptureFrame(SaveCapture));
@@ -165,10 +168,13 @@ namespace Avastrad.PixelArtPipeline.Editor
 
             var fileName = Path.GetFileNameWithoutExtension(diffusePath);
             var directory = Path.GetDirectoryName(diffusePath);
-            var normalPath = $"{directory}/{fileName}NormalMap.png";
 
             File.WriteAllBytes(diffusePath, diffuseMap.EncodeToPNG());
-            File.WriteAllBytes(normalPath, normalMap.EncodeToPNG());
+            if (normalMap != null)
+            {
+                var normalPath = $"{directory}/{fileName}NormalMap.png";
+                File.WriteAllBytes(normalPath, normalMap.EncodeToPNG());
+            }
 
             AssetDatabase.Refresh();
         }

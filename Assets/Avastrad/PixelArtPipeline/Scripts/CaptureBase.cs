@@ -8,8 +8,8 @@ namespace Avastrad.PixelArtPipeline
 {
     public abstract class CaptureBase
     {
-        public abstract IEnumerator Capture(Camera captureCamera, Vector2Int cellSize, Action<Texture2D, Texture2D> onComplete);
-        
+        public abstract IEnumerator Capture(Camera captureCamera, bool createNormalMap, Vector2Int cellSize, Action<Texture2D, Texture2D> onComplete);
+
         protected static Texture2D CreateDiffuseMap(Vector2Int atlasSize)
         {
             var diffuseMap = new Texture2D(atlasSize.x, atlasSize.y, TextureFormat.ARGB32, false)
@@ -43,8 +43,6 @@ namespace Avastrad.PixelArtPipeline
         protected static Action PrepareCamera(Camera captureCamera, Vector2Int cellSize, RenderTexture rtFrame)
         {
             var cameraAspect = captureCamera.pixelWidth / captureCamera.pixelHeight;
-            Debug.Log(captureCamera.pixelWidth);
-            Debug.Log(captureCamera.pixelHeight);
             var targetAspect = (float)cellSize.x / cellSize.y;
             if (targetAspect <= cameraAspect)
             {
@@ -57,21 +55,13 @@ namespace Avastrad.PixelArtPipeline
                 };
             }
 
-            Debug.Log("ASDSA");
-            
             if (captureCamera.orthographic)
             {
-                Debug.Log("orthographic");
                 var originalOrthoSize = captureCamera.orthographicSize;
                 var originalAspect = captureCamera.aspect;
                 
-                Debug.Log(originalOrthoSize);
-                Debug.Log(originalAspect);
-                Debug.Log(cameraAspect);
-                Debug.Log(targetAspect);
                 var targetOrthoSize = originalOrthoSize * (originalAspect / targetAspect);
                 captureCamera.orthographicSize = targetOrthoSize;
-                Debug.Log(captureCamera.orthographicSize);
 
                 var originalCameraColor = captureCamera.backgroundColor;
                 captureCamera.targetTexture = rtFrame;
@@ -124,7 +114,8 @@ namespace Avastrad.PixelArtPipeline
             Vector2Int atlasPos, Camera captureCamera)
         {
             RenderDiffuseMap(rtFrame, diffuseMap, atlasPos, captureCamera);
-            RenderNormalMap(rtFrame, normalMap, atlasPos, captureCamera);
+            if (normalMap != null)
+                RenderNormalMap(rtFrame, normalMap, atlasPos, captureCamera);
         }
 
         private static void RenderDiffuseMap(RenderTexture rtFrame, Texture2D diffuseMap, Vector2Int atlasPos,
@@ -137,8 +128,8 @@ namespace Avastrad.PixelArtPipeline
             diffuseMap.Apply();
         }
         
-        private static void RenderNormalMap(RenderTexture rtFrame, Texture2D normalMap,
-            Vector2Int atlasPos, Camera captureCamera)
+        private static void RenderNormalMap(RenderTexture rtFrame, Texture2D normalMap, Vector2Int atlasPos,
+            Camera captureCamera)
         {
             var pipelineAsset = GraphicsSettings.renderPipelineAsset;
             if (pipelineAsset == null)

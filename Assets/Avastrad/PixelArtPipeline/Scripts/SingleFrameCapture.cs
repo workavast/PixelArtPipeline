@@ -8,7 +8,7 @@ namespace Avastrad.PixelArtPipeline
     [Serializable]
     public class SingleFrameCapture : CaptureBase
     {
-        public override IEnumerator Capture(Camera captureCamera, Vector2Int cellSize, Action<Texture2D, Texture2D> onComplete)
+        public override IEnumerator Capture(Camera captureCamera, bool createNormalMap, Vector2Int cellSize, Action<Texture2D, Texture2D> onComplete)
         {
             var atlasSize = CalculateAtlasSize(cellSize, 1, out _);
             if (atlasSize.x > 8192 || atlasSize.y > 8192)
@@ -17,9 +17,9 @@ namespace Avastrad.PixelArtPipeline
                                $"Current resolution is {atlasSize}");
                 yield break;
             }
-            
+
             var diffuseMap = CreateDiffuseMap(atlasSize);
-            var normalMap = CreateNormalMap(atlasSize);
+            var normalMap = createNormalMap ? CreateNormalMap(atlasSize) : null;
             var rtFrame = CreateRenderTextureFrame(cellSize);
             
             var restoreCameraAction = PrepareCamera(captureCamera, cellSize, rtFrame);
@@ -30,6 +30,7 @@ namespace Avastrad.PixelArtPipeline
 
                 var atlasFramePosition = new Vector2Int(0, atlasSize.y - cellSize.y);
                 RenderMaps(rtFrame, diffuseMap, normalMap, atlasFramePosition, captureCamera);
+                
                 onComplete.Invoke(diffuseMap, normalMap);
             }
             finally
