@@ -6,7 +6,7 @@ using Object = UnityEngine.Object;
 namespace Avastrad.PixelArtPipeline
 {
     [Serializable]
-    public class AnimationCapture : CaptureBase
+    internal class AnimationCapture : CaptureBase
     {
         [SerializeField, Tooltip("The target for capturing")]
         private GameObject target;

@@ -6,7 +6,7 @@ using Object = UnityEngine.Object;
 namespace Avastrad.PixelArtPipeline
 {
     [Serializable]
-    public class SingleFrameCapture : CaptureBase
+    internal class SingleFrameCapture : CaptureBase
     {
         public override IEnumerator Capture(Camera captureCamera, bool createNormalMap, Vector2Int cellSize, Action<Texture2D, Texture2D> onComplete)
         {

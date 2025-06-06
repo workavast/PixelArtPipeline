@@ -1,15 +1,17 @@
-﻿using System.Collections;
+﻿#if UNITY_EDITOR
+
+using System.Collections;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace Avastrad.PixelArtPipeline.Editor
+namespace Avastrad.PixelArtPipeline
 {
     /// <summary>
     /// Custom editor for the AnimationCaptureHelper.
     /// </summary>
     [CustomEditor(typeof(PixelArtPipelineCapture))]
-    public class PixelArtPipelineEditor : UnityEditor.Editor
+    internal class EditorPixelArtPipelineCapture : UnityEditor.Editor
     {
         /// <summary>
         /// A message displayed when the target and source clip aren't assigned yet.
@@ -201,3 +203,4 @@ namespace Avastrad.PixelArtPipeline.Editor
         }
     }
 }
+#endif

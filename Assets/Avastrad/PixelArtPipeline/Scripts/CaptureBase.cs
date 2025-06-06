@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace Avastrad.PixelArtPipeline
 {
-    public abstract class CaptureBase
+    internal abstract class CaptureBase
     {
         public abstract IEnumerator Capture(Camera captureCamera, bool createNormalMap, Vector2Int cellSize, Action<Texture2D, Texture2D> onComplete);
 
