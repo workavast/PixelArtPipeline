@@ -131,7 +131,11 @@ namespace Avastrad.PixelArtPipeline
         private static void RenderNormalMap(RenderTexture rtFrame, Texture2D normalMap, Vector2Int atlasPos,
             Camera captureCamera)
         {
+#if UNITY_6000_0_OR_NEWER
+            var pipelineAsset = GraphicsSettings.defaultRenderPipeline;
+#else
             var pipelineAsset = GraphicsSettings.renderPipelineAsset;
+#endif
             if (pipelineAsset == null)
                 RenderNormalMap_BuiltIn(rtFrame, normalMap, atlasPos, captureCamera);
             else if (pipelineAsset.GetType().ToString().Contains("UniversalRenderPipelineAsset"))
@@ -163,8 +167,13 @@ namespace Avastrad.PixelArtPipeline
             if (normalShader == null)
                 throw new NullReferenceException($"Cant find shader: {shader}");
 
-            var originalMaterials = new Dictionary<Renderer, Material[]>();
+
+#if UNITY_6000_0_OR_NEWER
+            var allRenderers = UnityEngine.Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+#else
             var allRenderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
+#endif
+            var originalMaterials = new Dictionary<Renderer, Material[]>();
             foreach (var renderer in allRenderers)
             {
                 originalMaterials[renderer] = renderer.sharedMaterials;
